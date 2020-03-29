@@ -1,38 +1,75 @@
-.App {
-  text-align: center;
+body{
+  padding:20px;
+}
+.order-card {
+  color: #fff;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.bg-c-blue {
+  background: linear-gradient(45deg,#bc4e9c,#f80759);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.bg-c-green {
+  background: linear-gradient(45deg,#00b09b,#96c93d);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.bg-c-yellow {
+  background: linear-gradient(45deg,#fc4a1a,#f7b733);
 }
 
-.App-link {
-  color: #61dafb;
+.bg-c-pink {
+  background: linear-gradient(45deg,#093028,#237A57);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.bg-gr{
+  background: linear-gradient(45deg, #56ab2f, #a8e063);
+}
+
+.id-card{
+  height: 350px;
+  width: 600px;
+  background-color: white;
+  border-width: 1px solid black;
+  border-radius: 10px;
+}
+
+.circle{
+  border-radius: 50px;
+  height: 100px;
+  width: 100px;
+  box-shadow: 2px 2px green, -2px -2px rgba(139, 233, 139, 0.596) ;
+}
+
+.simpan{
+  width: 100%;
+  height: 60px;
+  border-radius: 50px;
+  box-shadow: 2px 2px green, -2px -2px rgba(122, 236, 122, 0.596) ;
+}
+
+
+.card {
+  border-radius: 5px;
+  -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+  box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+  border: none;
+  margin-bottom: 30px;
+  -webkit-transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+}
+
+.card .card-block {
+  padding: 25px;
+}
+
+.order-card i {
+  font-size: 26px;
+}
+
+.f-left {
+  float: left;
+}
+
+.f-right {
+  float: right;
 }
