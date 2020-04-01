@@ -46,16 +46,28 @@ function App() {
   const [dipanggil, setDipanggil] = useState('0');
   const [sisa, setSisa] = useState('0');
   const [poli, setPoli] = useState([]);
-  const [skr, setSkr] = useState('');
+  const [skr, setSkr] = useState('Nomor Antrian');
   const [kode, setKode] = useState('');
   const [pasienlist, setPasienList] = useState([]);
   const [rm, setRm] = useState('');
   const [idantri, setIdantri] = useState('');
-  const [rmfix, setRmfix] = useState('');
-  const [nama, setNama] = useState('');
-  const [alamat, setAlamat] = useState('');
-  const [umur, setUmur] = useState('');
+  const [rmfix, setRmfix] = useState('Nomor Rekam Medis');
+  const [nama, setNama] = useState('Nama Lengkap');
+  const [alamat, setAlamat] = useState('Alamat');
+  const [umur, setUmur] = useState('Umur');
   const [tanggal, setTanggal] = useState(new Date());
+  const [nik, setNik] = useState('')//nik
+  const [oldrm, setOldrm] = useState('')//oldrm
+  const [namapost, setNamapost] = useState('')//nama
+  const [jk, setJk] = useState('')//jk
+  const [tempatlahir, setTempatlahir] = useState('')//tempatlahir
+  const [tanggallahir, setTanggallahir] = useState('')//tanggal lahir
+  const [namakepalakeluarga, setNamakepalakeluarga] = useState('')//namakk
+  const [statusdalamkeluarga, setStatusdalamkeluarga] = useState('')//status
+  const [agama, setAgama] = useState('') //agama
+  const [pekerjaan, setPekerjaan] = useState('')//pelerjaan
+  const [alamatpost, setAlamatpost] = useState('')//alamat
+  const [nohp, setNohp] = useState('')//alamat
 
 
   useEffect(() => {
@@ -98,6 +110,26 @@ function App() {
       })
   }
 
+  function simpanPasien() {
+    axios.post('http://localhost/api/create_pasien/', {
+      nik: nik,
+      oldrm: oldrm,
+      nama: namapost,
+      jenis_kelamin: jk,
+      alamat: alamatpost,
+      tempat_lahir: tempatlahir,
+      tanggal_lahir: "200493",
+      no_hp: nohp,
+      nama_kepala_keluarga: namakepalakeluarga,
+      status: statusdalamkeluarga,
+      agama: agama,
+      pekerjaan: pekerjaan,
+    })
+      .then(res => {
+        console.log(res)
+      })
+  }
+
   async function substrRM() {
     let rmx = await rm.substring(0, 8)
     setRmfix(rmx);
@@ -112,7 +144,7 @@ function App() {
         setUmur(res.data.umur)
       })
   }
-
+ 
   function kodePrint(val) {
     setKode(val)
     console.log(val)
@@ -133,62 +165,35 @@ function App() {
     <div>
       <div className="row">
         <div className="col-lg-6" >
-
+        <AppBar position="static">
+            <Toolbar>
+              <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" className={classes.title} >
+                Tambah Data Pasien
+                  </Typography>
+              <Button color="inherit">Login</Button>
+            </Toolbar>
+          </AppBar>
           <div className="container">
-            <div className="row">
-              <div className="col-md-4 col-xl-3">
-                <div className="card bg-c-blue order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{total}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Total Antrian</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 col-xl-3">
-                <div className="card bg-c-green order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{dipanggil}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antrian Dipanggil</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 col-xl-3">
-                <div className="card bg-c-yellow order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>486</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antian Online</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 col-xl-3">
-                <div className="card bg-c-pink order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{sisa}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antrian Tersisa</h6>
-                  </div>
-                </div>
-              </div>
-            </div>
+
             <div className="row">
               <TableContainer component={Paper} >
                 <Table className={classes.table} aria-label="simple table" disableElevation>
                   <TableHead>
                     <TableRow>
-                      <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
-                      <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
+                      <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
-                      <TableCell ><TextField label="Jenis Kelamin" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
+                      <TableCell ><TextField label="Jenis Kelamin" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setJk(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
                       <TableCell>
                         <MuiPickersUtilsProvider utils={DateFnsUtils}>
                           <KeyboardDatePicker
@@ -198,6 +203,7 @@ function App() {
                             label="Tanggal Lahir"
                             format="dd MMMM y"
                             value={tanggal}
+                            
                             KeyboardButtonProps={{
                               'aria-label': 'change date',
                             }}
@@ -206,18 +212,18 @@ function App() {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
-                      <TableCell><TextField label="Status Dalam keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
+                      <TableCell><TextField label="Status Dalam keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setStatusdalamkeluarga(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell><TextField label="Agama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
-                      <TableCell><TextField label="Pekerjaan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell><TextField label="Agama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAgama(target.value)} /></TableCell>
+                      <TableCell><TextField label="Pekerjaan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setPekerjaan(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setRm(target.value)} /></TableCell>
+                      <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={() => simpanprint()}>Simpan Data Pasien</Button></TableCell>
+                      <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -238,13 +244,48 @@ function App() {
               <Button color="inherit">Login</Button>
             </Toolbar>
           </AppBar>
-          <div className="card" style={{ borderRadius:0 }}>
-            <div className="card-block">
-              <div className='row' style={{ marginBottom: 20 }}>
-                <div className="col-lg-12">
-
+          <div className="card" style={{ borderRadius: 0 }}>
+            <div className="row" style={{ backgroundColor: '#ecf0f1', padding: 20, marginRight: 0,marginLeft: 0}}>
+              <div className="col-md-3 ">
+                <div className="card bg-c-blue order-card">
+                  <div className="card-block">
+                    <h2 className="text-center"><span>{total}</span></h2>
+                    <hr></hr>
+                    <h6 className="text-center">Total Antrian</h6>
+                  </div>
                 </div>
               </div>
+              <div className="col-md-3">
+                <div className="card bg-c-green order-card">
+                  <div className="card-block">
+                    <h2 className="text-center"><span>{dipanggil}</span></h2>
+                    <hr></hr>
+                    <h6 className="text-center">Antrian Dipanggil</h6>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-3 ">
+                <div className="card bg-c-yellow order-card">
+                  <div className="card-block">
+                    <h2 className="text-center"><span>486</span></h2>
+                    <hr></hr>
+                    <h6 className="text-center">Antian Online</h6>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="card bg-c-pink order-card">
+                  <div className="card-block">
+                    <h2 className="text-center"><span>{sisa}</span></h2>
+                    <hr></hr>
+                    <h6 className="text-center">Antrian Tersisa</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card-block">
+
 
               <div className="row">
                 <div className="col-lg-6">
@@ -307,26 +348,21 @@ function App() {
                     <Table className={classes.table} aria-label="simple table" disableElevation>
                       <TableHead>
                         <TableRow>
-                          <TableCell>Nomor Antrian</TableCell>
-                          <TableCell align="right">{skr}</TableCell>
+                          <TableCell>{skr}</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         <TableRow>
-                          <TableCell>Nomor RM</TableCell>
-                          <TableCell align="right">{rmfix}</TableCell>
+                          <TableCell>{rmfix}</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell>Nama Lengkap</TableCell>
-                          <TableCell align="right">{nama}</TableCell>
+                          <TableCell>{nama}</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell>Umur</TableCell>
-                          <TableCell align="right">{umur}</TableCell>
+                          <TableCell>{umur}</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell>Alamat</TableCell>
-                          <TableCell align="right">{alamat}</TableCell>
+                          <TableCell>{alamat}</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
