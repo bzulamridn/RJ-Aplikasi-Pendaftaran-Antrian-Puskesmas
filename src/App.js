@@ -67,7 +67,11 @@ function App() {
   const [agama, setAgama] = useState('') //agama
   const [pekerjaan, setPekerjaan] = useState('')//pelerjaan
   const [alamatpost, setAlamatpost] = useState('')//alamat
-  const [nohp, setNohp] = useState('')//alamat
+  const [nohp, setNohp] = useState('')//nohp
+  const [bpjs, setBpjs] = useState('');
+  const [indekx, setIndex ] = useState('');
+  const [kabkota, setKabkota] = useState('6101'); //sambas
+  const [kodeFaskes, setKodeFaskes] = useState('610110001');
 
 
   useEffect(() => {
@@ -80,7 +84,11 @@ function App() {
         setPoli(res.data.poli)
         console.log(res.data)
       })
-    await axios.get('http://localhost/api/pasien')
+    await datapasien();
+  }
+
+  function datapasien(){
+    axios.get('http://localhost:3000/pasien')
       .then(res => {
         setPasienList(res.data)
         console.log(res.data)
@@ -111,38 +119,48 @@ function App() {
   }
 
   function simpanPasien() {
-    axios.post('http://localhost/api/create_pasien/', {
+    axios.post('http://localhost:3000/createpasien/', {
       nik: nik,
-      oldrm: oldrm,
+      bpjs : bpjs,
+      old_rm: oldrm,
       nama: namapost,
       jenis_kelamin: jk,
       alamat: alamatpost,
       tempat_lahir: tempatlahir,
-      tanggal_lahir: "200493",
+      tanggal_lahir: tanggal,
       no_hp: nohp,
       nama_kepala_keluarga: namakepalakeluarga,
       status: statusdalamkeluarga,
       agama: agama,
       pekerjaan: pekerjaan,
+      kodefaskes : kodeFaskes,
+      
     })
       .then(res => {
         console.log(res)
       })
   }
 
+  // function YearMonthPicker({ handleChangeTo }) {
+  //   setTanggal(val)
+  // }
+
+
   async function substrRM() {
-    let rmx = await rm.substring(0, 8)
-    setRmfix(rmx);
-    cariPasien(rmx)
+    let str = indekx;
+    let batas = str.indexOf('-');
+    let indexpasien = await indekx.substring(0, batas)
+    cariPasien(indexpasien)
   }
 
   function cariPasien(val) {
-    axios.get('http://localhost/api/getpasienrm/' + val)
-      .then(res => {
-        setNama(res.data.nama)
-        setAlamat(res.data.alamat)
-        setUmur(res.data.umur)
-      })
+    // axios.get('http://localhost/api/getpasienrm/' + val)
+    //   .then(res => {
+        setRmfix(pasienlist[val].rm)
+        setNama(pasienlist[val].nama)
+        setAlamat(pasienlist[val].alamat)
+        setUmur("12")
+      //})
   }
  
   function kodePrint(val) {
@@ -182,15 +200,20 @@ function App() {
               <TableContainer component={Paper} >
                 <Table className={classes.table} aria-label="simple table" disableElevation>
                   <TableHead>
-                    <TableRow>
+                   
+                  </TableHead>
+                  <TableBody>
+                  <TableRow>
                       <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
                       <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
                     <TableRow>
                       <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
                       <TableCell ><TextField label="Jenis Kelamin" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setJk(target.value)} /></TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell><TextField label="Nomor BPJS" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setBpjs(target.value)} /></TableCell>
+                      <TableCell><TextField label="Nomor Handphone" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNohp(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
@@ -202,8 +225,12 @@ function App() {
                             id="date-picker-dialog"
                             label="Tanggal Lahir"
                             format="dd MMMM y"
+                            maxDate={tanggal}
                             value={tanggal}
-                            
+                            onChange={value => {
+                              setTanggal(value);
+                              //handleChangeTo(value);
+                            }}
                             KeyboardButtonProps={{
                               'aria-label': 'change date',
                             }}
@@ -317,18 +344,18 @@ function App() {
               </div>
               <hr></hr>
               <div className="row" style={{ marginTop: 20 }}>
-                <div className="col-lg-10">
+                <div className="col-lg-9">
                   <Autocomplete
                     id="free-solo-demo"
                     freeSolo
-                    options={pasienlist.map((option) => option.no_rm + " - " + option.nama)}
-                    onChange={(e, v) => setRm(v)}
+                    options={pasienlist.map((option, index) => +index+"- "+option.rm + " " + option.nama + " " + option.bpjs)}
+                    onChange={(e, v) => setIndex(v)}
                     renderInput={(params) => (
-                      <TextField {...params} label="Nomor Rekam Medis / Nama Lengkap" margin="normal" variant="outlined" onChange={({ target }) => setRm(target.value)} />
+                      <TextField {...params} label="Nomor Rekam Medis / Nama Lengkap" margin="normal" variant="outlined" onChange={({ target }) => setIndex(target.value)} />
                     )}
                   />
                 </div>
-                <div className="col-lg-2" style={{ alignItems: 'center' }}>
+                <div className="col-lg-3" style={{ alignItems: 'center',  marginTop: 20 }}>
                   <Button
                     variant="contained"
                     color="secondary"
@@ -337,7 +364,7 @@ function App() {
                     onClick={() => substrRM()}
                   //startIcon={<SaveIcon />}
                   >
-                    Ulang
+                    Cari Pasien
                   </Button>
                 </div>
               </div>
