@@ -42,6 +42,7 @@ const useStyles = makeStyles((theme) => ({
 function App() {
 
   const classes = useStyles();
+  const [isLogin, setLogin] = useState(false);
   const [total, setTotal] = useState('0');
   const [dipanggil, setDipanggil] = useState('0');
   const [sisa, setSisa] = useState('0');
@@ -71,7 +72,7 @@ function App() {
   const [bpjs, setBpjs] = useState('');
   const [indekx, setIndex ] = useState('');
   const [kabkota, setKabkota] = useState('6101'); //sambas
-  const [kodeFaskes, setKodeFaskes] = useState('610110001');
+  const [kodeFaskes, setKodeFaskes] = useState('610110003');
 
 
   useEffect(() => {
@@ -250,7 +251,7 @@ function App() {
                       <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%' }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
+                      <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%', padding: 20 }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
