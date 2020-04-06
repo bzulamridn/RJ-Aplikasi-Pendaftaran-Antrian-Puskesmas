@@ -401,7 +401,7 @@ function App() {
                     <div clasname='col-lg-4'>
                       {poli.map((data, index) =>
                         <Button variant="contained" color="primary" onClick={() => kodePrint(data.kode_antrian)} style={{ padding: 20, borderRadius: 0 }} disableElevation> {data.nama_pelayanan}</Button>
-                      )}
+                      )}11
                     </div>
                   </div>
                 </div>
