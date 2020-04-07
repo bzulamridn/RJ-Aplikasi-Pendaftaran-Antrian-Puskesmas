@@ -26,6 +26,22 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Login from './Login';
+import Grid from '@material-ui/core/Grid';
+import Avatar from '@material-ui/core/Avatar';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
+import Link from '@material-ui/core/Link';
+import Box from '@material-ui/core/Box';
+import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import Container from '@material-ui/core/Container';
+import Card from '@material-ui/core/Card';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -37,12 +53,46 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  paper: {
+    marginTop: theme.spacing(8),
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+
+  },
+  avatar: {
+    margin: theme.spacing(1),
+    backgroundColor: theme.palette.secondary.main,
+  },
+  form: {
+    width: '100%', // Fix IE 11 issue.
+    marginTop: theme.spacing(1),
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    width: '100%'
+  },
+  selectEmpty: {
+    marginTop: theme.spacing(2),
+  },
 }));
+
+toast.configure({
+  autoClose: 5000,
+  draggable: true,
+  //etc you get the idea
+});
+
+
 
 function App() {
 
   const classes = useStyles();
   const [isLogin, setLogin] = useState(false);
+  const [isPageLoading, setIspageloading] = useState(false)
   const [total, setTotal] = useState('0');
   const [dipanggil, setDipanggil] = useState('0');
   const [sisa, setSisa] = useState('0');
@@ -70,25 +120,47 @@ function App() {
   const [alamatpost, setAlamatpost] = useState('')//alamat
   const [nohp, setNohp] = useState('')//nohp
   const [bpjs, setBpjs] = useState('');
-  const [indekx, setIndex ] = useState('');
-  const [kabkota, setKabkota] = useState('6101'); //sambas
-  const [kodeFaskes, setKodeFaskes] = useState('610110003');
+  const [indekx, setIndex] = useState('');
+  const [kabkota, setKabkota] = useState(''); //sambas
+  const [kodeFaskes, setKodeFaskes] = useState('');
+  const [passwordfaskes, setPasswordfaskes] = useState('');
+  const [datafaskes, setDatafaskes] = useState([])
+  const [agamalist, setAgamalist] = useState([])
+  const [pekerjaanlist, setPekerjaanlist] = useState([])
+  const [statuskeluargalist, setStatuskeluargalist] = useState([])
+
+  // useEffect(() => {
+  //   onload();
+  // }, [])
 
 
-  useEffect(() => {
-    onload();
-  }, [])
-
-  async function onload() {
-    await axios.get('http://localhost/api/indexpendaftaran')
+  function login() {
+    axios.post('http://localhost:3000/loginfaskes', {
+      faskesid: kodeFaskes,
+      passwordfaskes: passwordfaskes
+    })
       .then(res => {
-        setPoli(res.data.poli)
         console.log(res.data)
+        if (res.data.status !== '1') {
+          toast.error("Id atau Password Anda Salah", {
+            position: toast.POSITION.TOP_RIGHT
+          });
+        } else {
+          setLogin(true)
+          setIspageloading(true)
+          onload()
+        }
       })
-    await datapasien();
   }
 
-  function datapasien(){
+  async function onload() {
+    await datapasien();
+    await getdatafaskes();
+    await getAttribut()
+    setIspageloading(false)
+  }
+
+  function datapasien() {
     axios.get('http://localhost:3000/pasien')
       .then(res => {
         setPasienList(res.data)
@@ -96,8 +168,30 @@ function App() {
       })
   }
 
+  function getAttribut() {
+    axios.get('http://localhost:3000/attribut')
+      .then(res => {
+        console.log(res.data)
+        setAgamalist(res.data.agama)
+        setPekerjaanlist(res.data.pekerjaan)
+        setStatuskeluargalist(res.data.statuskeluarga)
+      })
+  }
+
+  function getdatafaskes() {
+    axios.get('http://localhost:3000/faskesbyid/' + kodeFaskes)
+      .then(res => {
+        setDatafaskes(res.data[0])
+        axios.get(res.data[0].local_api + "indexpendaftaran")
+          .then(res => {
+            setPoli(res.data.poli)
+            console.log(res.data)
+          })
+      })
+  }
+
   function panggil() {
-    axios.get('http://localhost/api/panggil')
+    axios.get(datafaskes.local_api + "panggil")
       .then(res => {
         if (res.data.status === '1') {
           if (res.data.dipanggil < 10) {
@@ -120,26 +214,36 @@ function App() {
   }
 
   function simpanPasien() {
-    axios.post('http://localhost:3000/createpasien/', {
-      nik: nik,
-      bpjs : bpjs,
-      old_rm: oldrm,
-      nama: namapost,
-      jenis_kelamin: jk,
-      alamat: alamatpost,
-      tempat_lahir: tempatlahir,
-      tanggal_lahir: tanggal,
-      no_hp: nohp,
-      nama_kepala_keluarga: namakepalakeluarga,
-      status: statusdalamkeluarga,
-      agama: agama,
-      pekerjaan: pekerjaan,
-      kodefaskes : kodeFaskes,
-      
-    })
-      .then(res => {
-        console.log(res)
+    console.log("tes")
+    if(nik === '' || bpjs === '' || oldrm === '' || namapost === '' || jk === '' || alamatpost === '' || tempatlahir === '' || nohp === '' || namakepalakeluarga === '' || statusdalamkeluarga === '' || agama === '' || pekerjaan === ''){
+      toast.error("Lengkapi Isian Anda", {
+        position: toast.POSITION.TOP_RIGHT
+      });
+    }else{
+      axios.post('http://localhost:3000/createpasien/', {
+        nik: nik,
+        bpjs: bpjs,
+        old_rm: oldrm,
+        nama: namapost,
+        jenis_kelamin: jk,
+        alamat: alamatpost,
+        tempat_lahir: tempatlahir,
+        tanggal_lahir: tanggal,
+        no_hp: nohp,
+        nama_kepala_keluarga: namakepalakeluarga,
+        status: statusdalamkeluarga,
+        agama: agama,
+        pekerjaan: pekerjaan,
+        kodefaskes: kodeFaskes,
       })
+        .then(res => {
+          datapasien();
+          toast.success("Data Pasien Berhasil di Tambahkan", {
+            position: toast.POSITION.TOP_RIGHT
+          });
+        })
+    }
+  
   }
 
   // function YearMonthPicker({ handleChangeTo }) {
@@ -157,13 +261,13 @@ function App() {
   function cariPasien(val) {
     // axios.get('http://localhost/api/getpasienrm/' + val)
     //   .then(res => {
-        setRmfix(pasienlist[val].rm)
-        setNama(pasienlist[val].nama)
-        setAlamat(pasienlist[val].alamat)
-        setUmur("12")
-      //})
+    setRmfix(pasienlist[val].rm)
+    setNama(pasienlist[val].nama)
+    setAlamat(pasienlist[val].alamat)
+    setUmur("12")
+    //})
   }
- 
+
   function kodePrint(val) {
     setKode(val)
     console.log(val)
@@ -181,244 +285,372 @@ function App() {
   }
 
   return (
-    <div>
-      <div className="row">
-        <div className="col-lg-6" >
-        <AppBar position="static">
-            <Toolbar>
-              <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" className={classes.title} >
-                Tambah Data Pasien
+    <>
+      {isLogin ?
+        (<div className="row">
+          {isPageLoading ?
+            (
+              <h1>Loading</h1>
+            )
+            :
+            (
+              <>
+                <div className="col-lg-6" >
+                  <AppBar position="static">
+                    <Toolbar>
+                      <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography variant="h6" className={classes.title} >
+                        Tambah Data Pasien
                   </Typography>
-              <Button color="inherit">Login</Button>
-            </Toolbar>
-          </AppBar>
-          <div className="container">
+                      <Button color="inherit">Login</Button>
+                    </Toolbar>
+                  </AppBar>
+                  <div className="container">
 
-            <div className="row">
-              <TableContainer component={Paper} >
-                <Table className={classes.table} aria-label="simple table" disableElevation>
-                  <TableHead>
-                   
-                  </TableHead>
-                  <TableBody>
-                  <TableRow>
-                      <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
-                      <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
-                      <TableCell ><TextField label="Jenis Kelamin" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setJk(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><TextField label="Nomor BPJS" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setBpjs(target.value)} /></TableCell>
-                      <TableCell><TextField label="Nomor Handphone" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNohp(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
-                      <TableCell>
-                        <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                          <KeyboardDatePicker
-                            className="form-control"
-                            margin="normal"
-                            id="date-picker-dialog"
-                            label="Tanggal Lahir"
-                            format="dd MMMM y"
-                            maxDate={tanggal}
-                            value={tanggal}
-                            onChange={value => {
-                              setTanggal(value);
-                              //handleChangeTo(value);
-                            }}
-                            KeyboardButtonProps={{
-                              'aria-label': 'change date',
-                            }}
+                    <div className="row">
+                      <TableContainer component={Paper} >
+                        <Table className={classes.table} aria-label="simple table" disableElevation>
+                          <TableHead>
+
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                              <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
+                              <TableCell ><FormControl className={classes.formControl}>
+                                <InputLabel id="demo-simple-select-label">Jenis Kelamin</InputLabel>
+                                <Select
+                                  labelId="demo-simple-select-label"
+                                  id="demo-simple-select"
+                                  value={jk}
+                                  onChange={({ target }) => setJk(target.value)}
+                                >
+                                  <MenuItem value="Laki lai">Laki laki</MenuItem>
+                                  <MenuItem value="Perempuan">Perempuan</MenuItem>
+                                </Select>
+                              </FormControl></TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell><TextField label="Nomor BPJS" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setBpjs(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nomor Handphone" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNohp(target.value)} /></TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
+                              <TableCell>
+                                <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                                  <KeyboardDatePicker
+                                    className="form-control"
+                                    margin="normal"
+                                    id="date-picker-dialog"
+                                    label="Tanggal Lahir"
+                                    format="dd MMMM y"
+                                    maxDate={tanggal}
+                                    value={tanggal}
+                                    onChange={value => {
+                                      setTanggal(value);
+                                      //handleChangeTo(value);
+                                    }}
+                                    KeyboardButtonProps={{
+                                      'aria-label': 'change date',
+                                    }}
+                                  />
+                                </MuiPickersUtilsProvider>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
+                              <TableCell>
+                              <FormControl className={classes.formControl}>
+                                  <InputLabel id="demo-simple-select-label">Status Dalam Keluarga</InputLabel>
+                                  <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    value={statusdalamkeluarga}
+                                    onChange={({ target }) => setStatusdalamkeluarga(target.value)}
+                                  >
+                                    {statuskeluargalist.map((val, index) =>
+                                     
+                                        <MenuItem value={val.nama_status}>{val.nama_status}</MenuItem>
+                                     
+                                    )}
+
+                                  </Select>
+                                </FormControl>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell>
+                                <FormControl className={classes.formControl}>
+                                  <InputLabel id="demo-simple-select-label">Agama</InputLabel>
+                                  <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    value={agama}
+                                    onChange={({ target }) => setAgama(target.value)}
+                                  >
+                                    {agamalist.map((val, index) =>
+                                
+                                        <MenuItem value={val.nama_agama}>{val.nama_agama}</MenuItem>
+                                     
+                                    )}
+
+                                  </Select>
+                                </FormControl></TableCell>
+                              <TableCell>
+                              <FormControl className={classes.formControl}>
+                                  <InputLabel id="demo-simple-select-label">Pekerjaan</InputLabel>
+                                  <Select
+                                    labelId="demo-simple-select-label"
+                                    id="demo-simple-select"
+                                    value={pekerjaan}
+                                    onChange={({ target }) => setPekerjaan(target.value)}
+                                  >
+                                    {pekerjaanlist.map((val, index) =>
+                                     
+                                        <MenuItem value={val.nama_pekerjaan}>{val.nama_pekerjaan}</MenuItem>
+                                     
+                                    )}
+
+                                  </Select>
+                                </FormControl></TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%', padding: 20 }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </div>
+                  </div>
+
+                </div>
+                <div className="col-lg-6">
+                  <AppBar position="static">
+                    <Toolbar>
+                      <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+                        <MenuIcon />
+                      </IconButton>
+                      <Typography variant="h6" className={classes.title} >
+                        {datafaskes.nama_faskes}
+                      </Typography>
+                      <Button color="inherit">Login</Button>
+                    </Toolbar>
+                  </AppBar>
+                  <div className="card" style={{ borderRadius: 0 }}>
+                    <div className="row" style={{ backgroundColor: '#ecf0f1', padding: 20, marginRight: 0, marginLeft: 0 }}>
+                      <div className="col-md-3 ">
+                        <div className="card bg-c-blue order-card">
+                          <div className="card-block">
+                            <h2 className="text-center"><span>{total}</span></h2>
+                            <hr></hr>
+                            <h6 className="text-center">Total Antrian</h6>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="card bg-c-green order-card">
+                          <div className="card-block">
+                            <h2 className="text-center"><span>{dipanggil}</span></h2>
+                            <hr></hr>
+                            <h6 className="text-center">Antrian Dipanggil</h6>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3 ">
+                        <div className="card bg-c-yellow order-card">
+                          <div className="card-block">
+                            <h2 className="text-center"><span>486</span></h2>
+                            <hr></hr>
+                            <h6 className="text-center">Antian Online</h6>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-3">
+                        <div className="card bg-c-pink order-card">
+                          <div className="card-block">
+                            <h2 className="text-center"><span>{sisa}</span></h2>
+                            <hr></hr>
+                            <h6 className="text-center">Antrian Tersisa</h6>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="card-block">
+
+
+                      <div className="row">
+                        <div className="col-lg-6">
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            style={{ width: '100%', height: 80 }}
+                            onClick={() => panggil()}
+                            className={classes.button}
+                          //startIcon={<SaveIcon />}
+                          >
+                            Panggil
+                  </Button>
+                        </div>
+                        <div className="col-lg-6">
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            size="large"
+                            style={{ width: '100%', height: 80 }}
+                            onClick={() => panggil()}
+                            className={classes.button}
+                          //startIcon={<SaveIcon />}
+                          >
+                            Ulang
+                  </Button>
+                        </div>
+                      </div>
+                      <hr></hr>
+                      <div className="row" style={{ marginTop: 20 }}>
+                        <div className="col-lg-9">
+                          <Autocomplete
+                            id="free-solo-demo"
+                            freeSolo
+                            options={pasienlist.map((option, index) => +index + "- " + option.rm + " " + option.nama + " " + option.bpjs)}
+                            onChange={(e, v) => setIndex(v)}
+                            renderInput={(params) => (
+                              <TextField {...params} label="Nomor Rekam Medis / Nama Lengkap" margin="normal" variant="outlined" onChange={({ target }) => setIndex(target.value)} />
+                            )}
                           />
-                        </MuiPickersUtilsProvider>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
-                      <TableCell><TextField label="Status Dalam keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setStatusdalamkeluarga(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell><TextField label="Agama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAgama(target.value)} /></TableCell>
-                      <TableCell><TextField label="Pekerjaan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setPekerjaan(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%', padding: 20 }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </div>
-
-        </div>
-        <div className="col-lg-6">
-          <AppBar position="static">
-            <Toolbar>
-              <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" className={classes.title} >
-                News
-                  </Typography>
-              <Button color="inherit">Login</Button>
-            </Toolbar>
-          </AppBar>
-          <div className="card" style={{ borderRadius: 0 }}>
-            <div className="row" style={{ backgroundColor: '#ecf0f1', padding: 20, marginRight: 0,marginLeft: 0}}>
-              <div className="col-md-3 ">
-                <div className="card bg-c-blue order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{total}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Total Antrian</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="card bg-c-green order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{dipanggil}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antrian Dipanggil</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 ">
-                <div className="card bg-c-yellow order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>486</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antian Online</h6>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3">
-                <div className="card bg-c-pink order-card">
-                  <div className="card-block">
-                    <h2 className="text-center"><span>{sisa}</span></h2>
-                    <hr></hr>
-                    <h6 className="text-center">Antrian Tersisa</h6>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card-block">
-
-
-              <div className="row">
-                <div className="col-lg-6">
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    style={{ width: '100%', height: 80 }}
-                    onClick={() => panggil()}
-                    className={classes.button}
-                  //startIcon={<SaveIcon />}
-                  >
-                    Panggil
+                        </div>
+                        <div className="col-lg-3" style={{ alignItems: 'center', marginTop: 20 }}>
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            size="large"
+                            style={{ width: '100%' }}
+                            onClick={() => substrRM()}
+                          //startIcon={<SaveIcon />}
+                          >
+                            Cari Pasien
                   </Button>
-                </div>
-                <div className="col-lg-6">
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    style={{ width: '100%', height: 80 }}
-                    onClick={() => panggil()}
-                    className={classes.button}
-                  //startIcon={<SaveIcon />}
-                  >
-                    Ulang
-                  </Button>
-                </div>
-              </div>
-              <hr></hr>
-              <div className="row" style={{ marginTop: 20 }}>
-                <div className="col-lg-9">
-                  <Autocomplete
-                    id="free-solo-demo"
-                    freeSolo
-                    options={pasienlist.map((option, index) => +index+"- "+option.rm + " " + option.nama + " " + option.bpjs)}
-                    onChange={(e, v) => setIndex(v)}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Nomor Rekam Medis / Nama Lengkap" margin="normal" variant="outlined" onChange={({ target }) => setIndex(target.value)} />
-                    )}
-                  />
-                </div>
-                <div className="col-lg-3" style={{ alignItems: 'center',  marginTop: 20 }}>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    style={{ width: '100%' }}
-                    onClick={() => substrRM()}
-                  //startIcon={<SaveIcon />}
-                  >
-                    Cari Pasien
-                  </Button>
-                </div>
-              </div>
-              <hr></hr>
-              <div className="row text-center" style={{ marginTop: 20 }}>
-                <div className="col-lg-7 text-center">
-                  <TableContainer component={Paper} >
-                    <Table className={classes.table} aria-label="simple table" disableElevation>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>{skr}</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>{rmfix}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>{nama}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>{umur}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>{alamat}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </div>
-                <div className="col-lg-5 text-center">
-                  <div className='row'>
-                    <div clasname='col-lg-4'>
-                      {poli.map((data, index) =>
-                        <Button variant="contained" color="primary" onClick={() => kodePrint(data.kode_antrian)} style={{ padding: 20, borderRadius: 0 }} disableElevation> {data.nama_pelayanan}</Button>
-                      )}11
+                        </div>
+                      </div>
+                      <hr></hr>
+                      <div className="row text-center" style={{ marginTop: 20 }}>
+                        <div className="col-lg-7 text-center">
+                          <TableContainer component={Paper} >
+                            <Table className={classes.table} aria-label="simple table" disableElevation>
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>{skr}</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell>{rmfix}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>{nama}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>{umur}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>{alamat}</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </div>
+                        <div className="col-lg-5 text-center">
+                          <div className='row'>
+                            <div clasname='col-lg-4'>
+                              {poli.map((data, index) =>
+                                <Button variant="contained" color="primary" onClick={() => kodePrint(data.kode_antrian)} style={{ padding: 20, borderRadius: 0 }} disableElevation> {data.nama_pelayanan}</Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <hr></hr>
+                      <div className="row text-center" style={{ marginTop: 20 }}>
+                        <div className="col-lg-12 text-center">
+                          <Button variant="contained" color="primary" style={{ padding: 20, width: '100%' }} onClick={() => simpanprint()}>Simpan dan Cetak Antrian</Button>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 </div>
-              </div>
+              </>)
+          }
+        </div>)
+        : (
+          <Container component="main" maxWidth="xs">
 
-              <hr></hr>
-              <div className="row text-center" style={{ marginTop: 20 }}>
-                <div className="col-lg-12 text-center">
-                  <Button variant="contained" color="primary" style={{ padding: 20, width: '100%' }} onClick={() => simpanprint()}>Simpan dan Cetak Antrian</Button>
-                </div>
-              </div>
+            <CssBaseline />
+            <div className={classes.paper}>
+              <Avatar className={classes.avatar}>
+                <LockOutlinedIcon />
+              </Avatar>
+              <Typography component="h1" variant="h5">
+                Login Form
+            </Typography>
+              <form className={classes.form} noValidate>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="email"
+                  label="ID Fasilitas Kesehatan"
+                  onChange={({ target }) => setKodeFaskes(target.value)}
+                  autoComplete="email"
+                  autoFocus
+                />
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  onChange={({ target }) => setPasswordfaskes(target.value)}
+                  label="Password"
+                  type="password"
+                  id="password"
+                  autoComplete="current-password"
+                />
 
+                <Button
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                  onClick={() => login()}
+                >
+                  Login
+              </Button>
+                <Grid container>
+                  <Grid item xs>
+                    <Link href="#" variant="body2">
+                      Silahkan Menghubungi Admin Jika Lupa Password
+                  </Link>
+                  </Grid>
+
+                </Grid>
+              </form>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
+          </Container>
+        )
+      }
+    </>
   );
 }
 
