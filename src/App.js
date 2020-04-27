@@ -27,7 +27,6 @@ import {
 } from '@material-ui/pickers';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Login from './Login';
 import Grid from '@material-ui/core/Grid';
 import Avatar from '@material-ui/core/Avatar';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -128,6 +127,10 @@ function App() {
   const [agamalist, setAgamalist] = useState([])
   const [pekerjaanlist, setPekerjaanlist] = useState([])
   const [statuskeluargalist, setStatuskeluargalist] = useState([])
+  const [onesignalid, setOnesignalid] = useState('')
+  const [onesignalsec, setOnesignalsec] = useState('')
+  const [printerlist, setPrinterlist] = useState([])
+  const [printer, setPrinter] = useState('')
 
   // useEffect(() => {
   //   onload();
@@ -142,13 +145,18 @@ function App() {
       .then(res => {
         console.log(res.data)
         if (res.data.status !== '1') {
+          console.log(res.data)
+
           toast.error("Id atau Password Anda Salah", {
             position: toast.POSITION.TOP_RIGHT
           });
         } else {
-          setLogin(true)
+          setOnesignalid(res.data.data[0].onesignalid)
+          setOnesignalsec(res.data.data[0].onesignalsec)
+          index(res.data.data[0].local_api)
           setIspageloading(true)
           onload()
+          setLogin(true)
         }
       })
   }
@@ -158,6 +166,17 @@ function App() {
     await getdatafaskes();
     await getAttribut()
     setIspageloading(false)
+  }
+
+  async function index(url) {
+    await axios.get(url + 'indexapi')
+      .then(res => {
+        console.log("Data Loket")
+        console.log(res.data)
+        setPrinterlist(res.data.printer)
+        setDipanggil(res.data.data.dipanggil)
+        setSisa(res.data.data.sisa)
+      })
   }
 
   function datapasien() {
@@ -191,7 +210,7 @@ function App() {
   }
 
   function panggil() {
-    axios.get(datafaskes.local_api + "panggil")
+    axios.get(datafaskes.local_api + "panggil/" + onesignalid + "/" + onesignalsec)
       .then(res => {
         if (res.data.status === '1') {
           if (res.data.dipanggil < 10) {
@@ -211,15 +230,25 @@ function App() {
           alert("Antrian Habis")
         }
       })
+    console.log(onesignalid + " --- " + onesignalsec)
+  }
+
+  function ulang() {
+    axios.get(datafaskes.local_api + "ulangpanggil/A/" + dipanggil + "/" + onesignalid + "/" + onesignalsec)
+      .then(res => {
+        toast.success("Berhasil Pannggil Ulang", {
+          position: toast.POSITION.CENTER_CENTER
+        });
+      })
   }
 
   function simpanPasien() {
     console.log("tes")
-    if(nik === '' || bpjs === '' || oldrm === '' || namapost === '' || jk === '' || alamatpost === '' || tempatlahir === '' || nohp === '' || namakepalakeluarga === '' || statusdalamkeluarga === '' || agama === '' || pekerjaan === ''){
+    if (nik === '' || bpjs === '' || oldrm === '' || namapost === '' || jk === '' || alamatpost === '' || tempatlahir === '' || nohp === '' || namakepalakeluarga === '' || statusdalamkeluarga === '' || agama === '' || pekerjaan === '') {
       toast.error("Lengkapi Isian Anda", {
         position: toast.POSITION.TOP_RIGHT
       });
-    }else{
+    } else {
       axios.post('http://localhost:3000/createpasien/', {
         nik: nik,
         bpjs: bpjs,
@@ -241,21 +270,39 @@ function App() {
           toast.success("Data Pasien Berhasil di Tambahkan", {
             position: toast.POSITION.TOP_RIGHT
           });
+          resetform()
         })
+
     }
-  
+
   }
 
-  // function YearMonthPicker({ handleChangeTo }) {
-  //   setTanggal(val)
-  // }
+  function resetform() {
+    setNik('')
+    setOldrm('')
+    setNamapost('')
+    setJk('')
+    setBpjs('')
+    setNohp('')
+    setTempatlahir('')
+    setNamakepalakeluarga('')
+    setStatusdalamkeluarga('')
+    setAgama('')
+    setPekerjaan('')
+    setAlamatpost('')
+  }
 
 
   async function substrRM() {
-    let str = indekx;
-    let batas = str.indexOf('-');
-    let indexpasien = await indekx.substring(0, batas)
-    cariPasien(indexpasien)
+    if (indekx === '') {
+
+    } else {
+      let str = indekx;
+      let batas = str.indexOf('-');
+      let indexpasien = await indekx.substring(0, batas)
+      cariPasien(indexpasien)
+    }
+
   }
 
   function cariPasien(val) {
@@ -278,7 +325,7 @@ function App() {
     axios.get('http://localhost/api/antrianpoli/' + idantri + '/' + rmfix + '/' + kode)
       .then(res => {
         console.log(res)
-        const open = window.open("http://localhost/printpos/print.php?nomor=" + res.data.antrian + "&rm=" + rmfix, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+        const open = window.open("http://localhost/printpos/print.php?nomor=" + res.data.antrian + "&rm=" + rmfix + "&printer=" + printer , '_blank', 'location=yes,height=100,width=100,scrollbars=yes,status=yes');
         setTimeout(() => { open.close() }, 5000);
       })
 
@@ -304,7 +351,7 @@ function App() {
                       <Typography variant="h6" className={classes.title} >
                         Tambah Data Pasien
                   </Typography>
-                      <Button color="inherit">Login</Button>
+                      
                     </Toolbar>
                   </AppBar>
                   <div className="container">
@@ -348,7 +395,6 @@ function App() {
                                     margin="normal"
                                     id="date-picker-dialog"
                                     label="Tanggal Lahir"
-                                    format="dd MMMM y"
                                     maxDate={tanggal}
                                     value={tanggal}
                                     onChange={value => {
@@ -358,6 +404,7 @@ function App() {
                                     KeyboardButtonProps={{
                                       'aria-label': 'change date',
                                     }}
+                                    format="yyyy MM dd"
                                   />
                                 </MuiPickersUtilsProvider>
                               </TableCell>
@@ -365,7 +412,7 @@ function App() {
                             <TableRow>
                               <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
                               <TableCell>
-                              <FormControl className={classes.formControl}>
+                                <FormControl className={classes.formControl}>
                                   <InputLabel id="demo-simple-select-label">Status Dalam Keluarga</InputLabel>
                                   <Select
                                     labelId="demo-simple-select-label"
@@ -374,9 +421,9 @@ function App() {
                                     onChange={({ target }) => setStatusdalamkeluarga(target.value)}
                                   >
                                     {statuskeluargalist.map((val, index) =>
-                                     
-                                        <MenuItem value={val.nama_status}>{val.nama_status}</MenuItem>
-                                     
+
+                                      <MenuItem value={val.nama_status}>{val.nama_status}</MenuItem>
+
                                     )}
 
                                   </Select>
@@ -394,15 +441,15 @@ function App() {
                                     onChange={({ target }) => setAgama(target.value)}
                                   >
                                     {agamalist.map((val, index) =>
-                                
-                                        <MenuItem value={val.nama_agama}>{val.nama_agama}</MenuItem>
-                                     
+
+                                      <MenuItem value={val.nama_agama}>{val.nama_agama}</MenuItem>
+
                                     )}
 
                                   </Select>
                                 </FormControl></TableCell>
                               <TableCell>
-                              <FormControl className={classes.formControl}>
+                                <FormControl className={classes.formControl}>
                                   <InputLabel id="demo-simple-select-label">Pekerjaan</InputLabel>
                                   <Select
                                     labelId="demo-simple-select-label"
@@ -411,9 +458,9 @@ function App() {
                                     onChange={({ target }) => setPekerjaan(target.value)}
                                   >
                                     {pekerjaanlist.map((val, index) =>
-                                     
-                                        <MenuItem value={val.nama_pekerjaan}>{val.nama_pekerjaan}</MenuItem>
-                                     
+
+                                      <MenuItem value={val.nama_pekerjaan}>{val.nama_pekerjaan}</MenuItem>
+
                                     )}
 
                                   </Select>
@@ -441,7 +488,16 @@ function App() {
                       <Typography variant="h6" className={classes.title} >
                         {datafaskes.nama_faskes}
                       </Typography>
-                      <Button color="inherit">Login</Button>
+                      <select
+                        value={printer}
+                        onChange={({ target }) => setPrinter(target.value)}
+                      >
+                        <option value=""> Printer </option>
+                        {printerlist.map((data, index) =>
+                          <option value={data.nama_printer}> {data.loket} </option>
+                        )}
+                      </select>
+                      <Button color="inherit">Test Printer</Button>
                     </Toolbar>
                   </AppBar>
                   <div className="card" style={{ borderRadius: 0 }}>
@@ -467,7 +523,7 @@ function App() {
                       <div className="col-md-3 ">
                         <div className="card bg-c-yellow order-card">
                           <div className="card-block">
-                            <h2 className="text-center"><span>486</span></h2>
+                            <h2 className="text-center"><span>0</span></h2>
                             <hr></hr>
                             <h6 className="text-center">Antian Online</h6>
                           </div>
@@ -507,7 +563,7 @@ function App() {
                             color="secondary"
                             size="large"
                             style={{ width: '100%', height: 80 }}
-                            onClick={() => panggil()}
+                            onClick={() => ulang()}
                             className={classes.button}
                           //startIcon={<SaveIcon />}
                           >
@@ -557,9 +613,6 @@ function App() {
                                 </TableRow>
                                 <TableRow>
                                   <TableCell>{nama}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                  <TableCell>{umur}</TableCell>
                                 </TableRow>
                                 <TableRow>
                                   <TableCell>{alamat}</TableCell>
