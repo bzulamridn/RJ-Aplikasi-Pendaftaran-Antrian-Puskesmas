@@ -2,6 +2,7 @@
   "name": "pendaftaran",
   "version": "0.1.0",
   "proxy": "http://localhost",
+  "homepage": "http://pkmsambas.sambas.go.id/app_pendaftaran",
   "private": true,
   "dependencies": {
     "@date-io/date-fns": "^1.3.13",

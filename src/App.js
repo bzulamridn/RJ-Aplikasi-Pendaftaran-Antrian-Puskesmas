@@ -135,10 +135,11 @@ function App() {
   // useEffect(() => {
   //   onload();
   // }, [])
+  const URL = 'http://45.13.132.168:3000'
 
 
   function login() {
-    axios.post('http://localhost:3000/loginfaskes', {
+    axios.post(URL + '/loginfaskes', {
       faskesid: kodeFaskes,
       passwordfaskes: passwordfaskes
     })
@@ -180,7 +181,7 @@ function App() {
   }
 
   function datapasien() {
-    axios.get('http://localhost:3000/pasien')
+    axios.get(URL + '/pasien')
       .then(res => {
         setPasienList(res.data)
         console.log(res.data)
@@ -188,7 +189,7 @@ function App() {
   }
 
   function getAttribut() {
-    axios.get('http://localhost:3000/attribut')
+    axios.get(URL + '/attribut')
       .then(res => {
         console.log(res.data)
         setAgamalist(res.data.agama)
@@ -198,7 +199,7 @@ function App() {
   }
 
   function getdatafaskes() {
-    axios.get('http://localhost:3000/faskesbyid/' + kodeFaskes)
+    axios.get(URL + '/faskesbyid/' + kodeFaskes)
       .then(res => {
         setDatafaskes(res.data[0])
         axios.get(res.data[0].local_api + "indexpendaftaran")
@@ -249,7 +250,7 @@ function App() {
         position: toast.POSITION.TOP_RIGHT
       });
     } else {
-      axios.post('http://localhost:3000/createpasien/', {
+      axios.post(URL + '/createpasien/', {
         nik: nik,
         bpjs: bpjs,
         old_rm: oldrm,
@@ -321,14 +322,23 @@ function App() {
   }
 
   function simpanprint() {
+    if (idantri === '' || rmfix === '' || kode === '') {
+      toast.error("Pastikan Data Anda Terisi Semua", {
+        position: toast.POSITION.TOP_RIGHT
+      });
+    } else {
+      axios.get(datafaskes.local_api + 'antrianpoli/' + idantri + '/' + rmfix + '/' + kode)
+        .then(res => {
+          console.log(res)
+          const open = window.open("http://localhost/printpos/print.php?nomor=" + res.data.antrian + "&rm=" + rmfix + "&printer=" + printer, '_blank', 'location=yes,height=100,width=100,scrollbars=yes,status=yes');
+          setTimeout(() => { open.close() }, 5000);
+        })
+    }
+  }
 
-    axios.get('http://localhost/api/antrianpoli/' + idantri + '/' + rmfix + '/' + kode)
-      .then(res => {
-        console.log(res)
-        const open = window.open("http://localhost/printpos/print.php?nomor=" + res.data.antrian + "&rm=" + rmfix + "&printer=" + printer , '_blank', 'location=yes,height=100,width=100,scrollbars=yes,status=yes');
-        setTimeout(() => { open.close() }, 5000);
-      })
-
+  function tesPrint(){
+    const open = window.open("http://localhost/printpos/print.php?nomor=0000&rm=Sukses&printer=" + printer, '_blank', 'location=yes,height=100,width=100,scrollbars=yes,status=yes');
+    setTimeout(() => { open.close() }, 5000);
   }
 
   return (
@@ -350,12 +360,11 @@ function App() {
                       </IconButton>
                       <Typography variant="h6" className={classes.title} >
                         Tambah Data Pasien
-                  </Typography>
-                      
+                      </Typography>
+
                     </Toolbar>
                   </AppBar>
                   <div className="container">
-
                     <div className="row">
                       <TableContainer component={Paper} >
                         <Table className={classes.table} aria-label="simple table" disableElevation>
@@ -363,12 +372,13 @@ function App() {
 
                           </TableHead>
                           <TableBody>
-                            <TableRow>
-                              <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
-                              <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
+
+                            <TableRow id="reset-form">
+                              <TableCell><TextField label="Nomor Induk Kependudukan" margin="normal" value={nik} style={{ width: '100%' }} onChange={({ target }) => setNik(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nomor Rekam Medis Lama" margin="normal" value={oldrm} style={{ width: '100%' }} onChange={({ target }) => setOldrm(target.value)} /></TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell ><TextField label="Nama Lengkap" style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
+                              <TableCell ><TextField label="Nama Lengkap" value={namapost} style={{ width: '100%' }} onChange={({ target }) => setNamapost(target.value)} /></TableCell>
                               <TableCell ><FormControl className={classes.formControl}>
                                 <InputLabel id="demo-simple-select-label">Jenis Kelamin</InputLabel>
                                 <Select
@@ -377,17 +387,17 @@ function App() {
                                   value={jk}
                                   onChange={({ target }) => setJk(target.value)}
                                 >
-                                  <MenuItem value="Laki lai">Laki laki</MenuItem>
+                                  <MenuItem value="Laki laki">Laki laki</MenuItem>
                                   <MenuItem value="Perempuan">Perempuan</MenuItem>
                                 </Select>
                               </FormControl></TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell><TextField label="Nomor BPJS" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setBpjs(target.value)} /></TableCell>
-                              <TableCell><TextField label="Nomor Handphone" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNohp(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nomor BPJS" margin="normal" value={bpjs} style={{ width: '100%' }} onChange={({ target }) => setBpjs(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nomor Handphone" margin="normal" value={nohp} style={{ width: '100%' }} onChange={({ target }) => setNohp(target.value)} /></TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell><TextField label="Tempat Lahir" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
+                              <TableCell><TextField label="Tempat Lahir" margin="normal" value={tempatlahir} style={{ width: '100%' }} onChange={({ target }) => setTempatlahir(target.value)} /></TableCell>
                               <TableCell>
                                 <MuiPickersUtilsProvider utils={DateFnsUtils}>
                                   <KeyboardDatePicker
@@ -410,7 +420,7 @@ function App() {
                               </TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
+                              <TableCell><TextField label="Nama Kepala Keluarga" margin="normal" value={namakepalakeluarga} style={{ width: '100%' }} onChange={({ target }) => setNamakepalakeluarga(target.value)} /></TableCell>
                               <TableCell>
                                 <FormControl className={classes.formControl}>
                                   <InputLabel id="demo-simple-select-label">Status Dalam Keluarga</InputLabel>
@@ -467,11 +477,12 @@ function App() {
                                 </FormControl></TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell colSpan={2}><TextField label="Alamat" margin="normal" style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
+                              <TableCell colSpan={2}><TextField label="Alamat" margin="normal" value={alamat} style={{ width: '100%' }} onChange={({ target }) => setAlamatpost(target.value)} /></TableCell>
                             </TableRow>
                             <TableRow>
                               <TableCell colSpan={2}> <Button variant="contained" color="primary" style={{ width: '100%', padding: 20 }} onClick={() => simpanPasien()}>Simpan Data Pasien</Button></TableCell>
                             </TableRow>
+
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -497,7 +508,7 @@ function App() {
                           <option value={data.nama_printer}> {data.loket} </option>
                         )}
                       </select>
-                      <Button color="inherit">Test Printer</Button>
+                      <Button color="inherit" onClick={() => tesPrint()}>Test Printer</Button>
                     </Toolbar>
                   </AppBar>
                   <div className="card" style={{ borderRadius: 0 }}>
@@ -650,11 +661,9 @@ function App() {
 
             <CssBaseline />
             <div className={classes.paper}>
-              <Avatar className={classes.avatar}>
-                <LockOutlinedIcon />
-              </Avatar>
-              <Typography component="h1" variant="h5">
-                Login Form
+              <img src="https://image.flaticon.com/icons/svg/2132/2132503.svg" width="200" />
+              <Typography component="h1" variant="h6" style={{ marginTop:20 }}>
+                Loket Pendaftaran Puskesmas Sambas
             </Typography>
               <form className={classes.form} noValidate>
                 <TextField
@@ -691,9 +700,9 @@ function App() {
               </Button>
                 <Grid container>
                   <Grid item xs>
-                    <Link href="#" variant="body2">
+                    {/* <Link href="#" variant="body2">
                       Silahkan Menghubungi Admin Jika Lupa Password
-                  </Link>
+                  </Link> */}
                   </Grid>
 
                 </Grid>
